@@ -22,17 +22,9 @@
 #include <CoreFoundation/CoreFoundation.h>
 
 void disk_size();
-char* disk_partitions();
+
 
 typedef struct {
-
-    char* partition_name;
-    unsigned long parition_size;
-
-} partition;
-
-typedef struct {
-    partition* paritions;
     long total_disk_size; 
 } disk;
 
