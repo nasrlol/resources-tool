@@ -1,3 +1,0 @@
-/Users/nasr/synf/synf-sys/build/CMakeFiles/main.dir
-/Users/nasr/synf/synf-sys/build/CMakeFiles/edit_cache.dir
-/Users/nasr/synf/synf-sys/build/CMakeFiles/rebuild_cache.dir
