@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-cJSON convert_to_json(info info) {
+/* 
+ cJSON convert_to_json() {
 
   cJSON *root = cJSON_CreateObject();
   cJSON_AddStringToObject(root, "cpu", info.cpu->name);
@@ -15,8 +16,9 @@ cJSON convert_to_json(info info) {
 
   return *root;
 }
+ * */
 
-void handler(char *url, cJSON object) {
+void handler(char *url) {
   CURL *curl;
   CURLcode res;
 
@@ -26,7 +28,11 @@ void handler(char *url, cJSON object) {
   if (curl) {
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, object);
+
+
+    // TO DO
+    // parse the object to a json and pass that as an argument to post it
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, NULL);
 
     res = curl_easy_perform(curl);
     if (res != CURLE_OK)
