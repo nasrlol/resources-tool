@@ -1,5 +1,5 @@
 name: main-build
-run-name: actor: ${{ gitea.actor }}
+run-name: compile-build
 on: [push]
   
   jobs: 
