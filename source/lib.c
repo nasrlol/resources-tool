@@ -6,36 +6,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include "types.h"
 
 #define MAXC 1024
 #define MAXC_CHAR 256
 #define CONVERT_BYTES_TO_GIGABYTES 107374182   
 #define D 1073741824
-
-typedef struct {
-
-  int frequency;
-  int temperature;
-  char* name;
-  int threads;
-
-} cpu_s;
-
-typedef struct {
-  unsigned long total;
-  unsigned long available;
-} ram_s;
-
-typedef struct {
-  long long size;
-  short name;
-} disk_s;
-
-typedef struct { 
-  char* name;
-  char* hostname;
-  char* os_version;
-} device_s;
 
 void cpu_name();
 void cpu_threads();
@@ -251,6 +227,12 @@ void cpu_frequency(){
   {
     perror("sysctl");
   }
+  return;
+}
+
+void cpu_temperature(cpu_s cpu)
+{
+  cpu.temperature = 0;
   return;
 }
 

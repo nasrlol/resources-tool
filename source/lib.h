@@ -3,18 +3,22 @@
 
 #ifdef __APPLE__
 
-void get_device_info();
-void disk_size();
-void size();
-void av_size();
-void ram_info();
-void cpu_frequency();
 void cpu_name();
 void cpu_threads();
 void cpu_temperature();
 void cpu_frequency();
+
+void disk_size();
+void size();
+
+void av_size();
+void ram_info();
+
 void mem_size();
 void mem_av_size();
+
+void get_device_info();
+void get_os_version();
 
 #endif
 #endif
