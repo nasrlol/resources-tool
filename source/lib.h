@@ -1,8 +1,6 @@
-#ifndef LIB_L 
-#ifndef LIB_O 
+#ifndef LIB_H 
+#define LIB_H
 
-#define LIB_L
-#define LIB_O
 #include "types.h" 
 
 
@@ -27,5 +25,3 @@ void device_model();
 
 
 #endif
-#endif
-
