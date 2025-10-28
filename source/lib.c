@@ -1,4 +1,3 @@
-
 /*
  * 
  * Author: nasr
@@ -116,7 +115,7 @@ void mem_size() {
 }
 
 
-void av_mem_size() {
+void mem_av_size() {
   struct sysinfo info;
 
   if (sysinfo(&info) != 0) {
@@ -162,10 +161,35 @@ void device_up_time() {
 }
 
 
-void device_mdoel() {
+void device_model() {
 
 
   return;
+
+}
+
+void cpu_threads() {
+
+  return;
+}
+
+void get_total() {
+
+
+}
+
+void get_usage() {
+
+
+}
+
+void device_os_version() {
+
+
+}
+
+void device_model() {
+
 
 }
 
