@@ -13,6 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <string.h>
 #include "types.h"
 #include "lib.h"
 
@@ -39,11 +40,6 @@ void device_up_time();
 void device_os_version();
 void device_hostname();
 void device_model();
-
-cpu_s *u_cpu ;
-ram_s *u_ram ;
-disk_s *u_disk ;
-device_s *u_device ;
 
 #ifdef __gnu_linux__
 
@@ -183,48 +179,51 @@ void device_mdoel() {
 
 void cpu_name() {
 
-  char *name;
+  char *name = NULL;
   size_t len = 0;
 
-  if (sysctlbyname("machdep.cpu.brand_string", NULL, &len, NULL, 0) < 0)
-    perror("errorn in assigning the size for the cpu name variable\n");
+  if (sysctlbyname("machdep.cpu.brand_string", NULL, &len, NULL, 0) < 0){
+
+    perror("error in assigning the size for the cpu name variable\n");
+    return;
+  }
 
   name = malloc(len);
 
+  if (name == NULL) {
+    perror("malloc failed"); 
+    return;
+  }
+
   if(sysctlbyname("machdep.cpu.brand_string", name, &len, NULL, 0) < 0){
     perror("error in assigning the value to the cpu name variable\n");
-
     free(name);
     return;
   }
 
   u_cpu->name = name;
-  return;
 }
 
 void cpu_threads() {
 
   int count;
   size_t len = sizeof(count);
-  if (sysctlbyname("machdep.cpu.thread_count", &count, &len, NULL, 0) < 0)
+  if (sysctlbyname("machdep.cpu.thread_count", &count, &len, NULL, 0) < 0){
     perror("error in retrieving the cpu threads count\n");
+    return;
+  }
 
   u_cpu->threads = count;
-  return;
 }
 
 void cpu_frequency() {
-  uint64_t freq = 0;
-  size_t size = sizeof(freq);
+  // assigning a value of 0, value not available on macos
+  u_cpu->frequency = 0;
 
-  if (sysctlbyname("hw.cpufrequency", &freq, &size, NULL, 0) < 0)
-  {
-    perror("sysctl");
-  }
-  return;
 }
 
 void cpu_temperature() {
+  // assigning a value of 0, value not available on macos
   u_cpu->temperature = 0;
 }
 
@@ -247,12 +246,10 @@ void mem_av_size() {
 }
 
 void get_total() {
-
-
+  
 }
 
 void get_usage() {
-
 
 
 }
@@ -306,13 +303,12 @@ void device_model(){
   }
 
   u_device->name = model_name;
-  return;
 
 }
 
 void device_os_version() {
 
-  char *os_version;
+  char *os_version = NULL;
   size_t size = 0;
 
   if (sysctlbyname("kern.ostype", NULL, &size, NULL, 0) < 0)
@@ -327,9 +323,6 @@ void device_os_version() {
   }
 
   u_device->os_version = os_version;
-  return;
-
-
 }
 
 #endif

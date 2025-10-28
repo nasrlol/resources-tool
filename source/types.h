@@ -11,13 +11,13 @@ typedef struct {
 } cpu_s;
 
 typedef struct {
-  unsigned long total;
-  unsigned long available;
+  long int total;
+  long int available;
 } ram_s;
 
 typedef struct {
-  long long size;
-  short name;
+  long size;
+  char *name;
 } disk_s;
 
 typedef struct { 
