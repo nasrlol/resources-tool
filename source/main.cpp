@@ -11,11 +11,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <string.h>
+#include <sys/sysinfo.h>
 
 #define MAXC 1024
 #define MAXC_CHAR 256
@@ -126,13 +126,6 @@ int main() {
 	return 0;
 }
 
-
-
-
-
-#ifdef __gnu_linux__
-
-#include <sys/sysinfo.h>
 
 
 void
@@ -251,6 +244,7 @@ device_up_time() {
 void
 device_model() {
 
+	// TODO(nasr): 
 
 	return;
 
@@ -259,6 +253,7 @@ device_model() {
 void
 cpu_threads() {
 
+	// TODO(nasr): 
 	return;
 }
 
@@ -266,172 +261,20 @@ void
 get_total() {
 
 
+	// TODO(nasr): 
 }
 
 void
 get_usage() {
 
 
+	// TODO(nasr): 
 }
 
 void
 device_os_version() {
 
+	// TODO(nasr): 
 
 }
 
-#endif
-
-#ifdef __APPLE__
-
-#include <sys/sysctl.h>
-
-void cpu_name() {
-
-	char *name = NULL;
-	size_t len = 0;
-
-	if (sysctlbyname("machdep.cpu.brand_string", NULL, &len, NULL, 0) < 0){
-
-		perror("error in assigning the size for the cpu name variable\n");
-		return;
-	}
-
-	name = malloc(len);
-
-	if (name == NULL) {
-		perror("malloc failed"); 
-		return;
-	}
-
-	if(sysctlbyname("machdep.cpu.brand_string", name, &len, NULL, 0) < 0){
-		perror("error in assigning the value to the cpu name variable\n");
-		free(name);
-		return;
-	}
-
-	u_cpu->name = name;
-}
-
-void cpu_threads() {
-
-	int count;
-	size_t len = sizeof(count);
-	if (sysctlbyname("machdep.cpu.thread_count", &count, &len, NULL, 0) < 0){
-		perror("error in retrieving the cpu threads count\n");
-		return;
-	}
-
-	u_cpu->threads = count;
-}
-
-void cpu_frequency() {
-	// assigning a value of 0, value not available on macos
-	u_cpu->frequency = 0;
-
-}
-
-void cpu_temperature() {
-	// assigning a value of 0, value not available on macos
-	u_cpu->temperature = 0;
-}
-
-void mem_size() {
-	int64_t size;
-	size_t len = sizeof(size);
-	if (sysctlbyname("hw.memsize", &size, &len, NULL, 0) < 0)
-		perror("error in retrieving the memory size");
-
-	u_ram->total = size / D;
-}
-
-void mem_av_size() {
-	int64_t size;
-	size_t len = sizeof(size);
-	if (sysctlbyname("hw.memsize_usable", &size, &len, NULL, 0) < 0)
-		perror("error in retrieving the available memory size");
-
-	u_ram->available = size / D;
-}
-
-void get_total() {
-
-}
-
-void get_usage() {
-
-
-}
-
-void device_hostname(){
-
-	char *name;
-	size_t size = 0;
-
-	if (sysctlbyname("kern.hostname", NULL, &size, NULL, 0) < 0)
-		perror("failed retrieving the hostname: \n"); 
-
-	name = malloc(size);
-
-	if(sysctlbyname("kern.hostname", name, &size, NULL, 0) < 0){
-		perror("failed retrieving the hostname: \n");
-		free(name);
-		return ;
-	}
-
-	u_device->name = name;
-	return ;
-}
-
-void device_up_time(){
-
-	// struct timeval boottime;
-	unsigned long boottime ; 
-	unsigned long len = sizeof(boottime);
-
-	if (sysctlbyname("kern.boottime", &boottime, NULL, NULL, len) == -1){
-		perror("sysctl error");
-		return;
-	}
-}
-
-void device_model(){
-
-	char *model_name;
-	size_t size = 0;
-
-	if (sysctlbyname("hw.model", NULL, &size, NULL, 0) < 0)
-		perror("failed retrieving the model name: \n"); 
-
-	model_name = malloc(size);
-
-	if(sysctlbyname("hw.model", model_name, &size, NULL, 0) < 0){
-		perror("failed retrieving the hostname: \n");
-		free(model_name);
-		return;
-	}
-
-	u_device->name = model_name;
-
-}
-
-void device_os_version() {
-
-	char *os_version = NULL;
-	size_t size = 0;
-
-	if (sysctlbyname("kern.ostype", NULL, &size, NULL, 0) < 0)
-		perror("failed retrieving the hostname: \n"); 
-
-	os_version = malloc(size);
-
-	if(sysctlbyname("kern.ostype", os_version, &size, NULL, 0) < 0){
-		perror("failed retrieving the os version: \n");
-		free(os_version);
-		return ;
-	}
-
-	u_device->os_version = os_version;
-}
-
-#endif
