@@ -1,11 +1,11 @@
 /*
- * 
  * Author: nasr
  * Year: 2025-2026
  *
  */
 
 #include <cstdint>
+#include <cstdlib>
 #include <sys/sysinfo.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -50,7 +50,6 @@ typedef struct {
 
 typedef struct { 
 
-	char *name;
 	char *hostname;
 	char *os_version;
 	int uptime;
@@ -96,7 +95,7 @@ main() {
 	printf("gathering system resources...");
 	printf("\ntemperature: %d\nfrequency: %s\nname: %s\nthreads: %d\n", cpu->temperature, cpu->frequency, cpu->name, cpu->threads);
 	printf("total: %f\navailable: %f\n", ram->total, ram->available);
-	printf("device name:%s\ndevice hostname:%s\nos version: %s\nuptime: %d\nprocs: %d\n", device->name, device->hostname, device->os_version, device->uptime, device->procs);
+	printf("hostname:%s\nos version: %s\nuptime: %d\nprocs: %d\n", device->hostname, device->os_version, device->uptime, device->procs);
 
 	free(cpu);
 	free(ram);
@@ -136,8 +135,6 @@ cpu_data(Cpu *cpu) {
 					cpu->frequency = buffer;
 				}
 			}
-			int err = fclose(fp);
-			if (err != 0) perror("error closing /proc/cpuinfo");
 		}
 	}
 
@@ -199,9 +196,22 @@ device_data(Device *device) {
 		perror("sysinfo");
 
 	device->uptime = info.uptime;
-	// device->hostname = info.procs;
 	device->procs = info.procs;	
-	// TODO: get device model
-	// TODO: get distribution and os version 
+
+	FILE *fp = fopen("/etc/hostname", "r");
+	char* buffer = (char*)malloc(sizeof(char) * MAXC_CHAR);
+
+	device->hostname = fgets(buffer, MAXC_CHAR, fp);
+
+	fclose(fp);
+
+	free(buffer);
+		
+	fp = fopen("/etc/os-release", "r");
+	void *err = realloc(buffer,  MAXC_CHAR);
+
+	device->os_version = fgets(buffer, MAXC_CHAR, fp);
+
+	free(fp);
 }
 
