@@ -1,4 +1,3 @@
-
 /*
  * 
  * Author: nasr
@@ -6,6 +5,7 @@
  *
  */
 
+#include <cstdint>
 #include <sys/sysinfo.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -22,6 +22,12 @@
 #define D 1073741824
 
 #define forever for(;;)
+
+typedef struct {
+
+	// TODO: create the arena struct
+
+} Arena;
 
 typedef struct {
 
@@ -51,6 +57,22 @@ typedef struct {
 	uint16_t procs;
 
 } Device;
+
+
+Arena *ArenaAlloc(void);
+Arena *ArenaRelease(void);
+
+template <typename T>
+Arena *ArenaPush(Arena *arena, T);
+
+template <typename T>
+Arena *ArenaPushZero(Arena *arena, T);
+
+template <typename T> 
+void ArenaPop(Arena *arena, T);
+uint64_t ArenaGetPos(Arena *arena); 
+
+void ArenaClear(Arena *arena);
 
 void cpu_data(Cpu *cpu);
 void memory_data(Ram *ram);
