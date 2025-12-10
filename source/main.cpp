@@ -113,27 +113,25 @@ main() {
 void
 cpu_data(Cpu *cpu) {
 
-	cpu->name	= (char*)malloc(sizeof(char));
-	char *buffer = (char*)malloc(sizeof(int));
+	cpu->name	= (char*)malloc(sizeof(char) * MAXC_CHAR);
+	char *buffer = (char*)malloc(sizeof(char) * MAXC_CHAR);
 
 	FILE *fp = fopen("/proc/cpuinfo", "r");
 	if (!fp) perror("can't open /proc/cpuinfo");
 
-	char line[sizeof(cpu->name)];
-	while (fgets(line, sizeof(line), fp)) {
-		if (strncmp(line, "model",  sizeof(cpu->name)) == 0) {
+	char line[MAXC_CHAR];
+	while (fgets(line, MAXC_CHAR, fp)) {
+		if (strncmp(line, "model name",  sizeof(cpu->name)) == 0) {
 			char *colon = strchr(line, ':');
 			if (colon) {
 					cpu->name[strcspn(cpu->name, "\n")] = 0;
 					snprintf(cpu->name, MAXC_CHAR, "%s", colon);
 			}
 
-
-			if (strstr(buffer, "cpu MHz") != NULL) {
+			if (strstr(line, "cpu MHz") != NULL) {
 				colon = NULL;
 				colon = strchr(buffer, ':');
 				if (colon) {
-					buffer[strcspn(buffer, "\n")] = 0;
 					snprintf(buffer, MAXC_CHAR, "%s", colon);
 					cpu->frequency = buffer;
 				}
