@@ -23,7 +23,7 @@ typedef struct {
 
 } Arena;
 
-	Arena 
+Arena 
 *ArenaAlloc(void) 
 {
 
@@ -31,7 +31,7 @@ typedef struct {
 
 }
 
-	void
+void
 *ArenaRelease(Arena *arena) 
 {
 
@@ -39,27 +39,27 @@ typedef struct {
 
 }
 
-	Arena
+Arena
 *ArenaPush(Arena *arena, size_t bytes)
 {
 
 	return NULL;
 }
 
-	void
+void
 ArenaPop(Arena *arena)
 {
 
 }
 
-	uint64_t
+uint64_t
 ArenaGetPos(Arena *arena)
 {
 
 	return 0;
 }
 
-	void
+void
 ArenaClear(Arena *arena)
 {
 	// TODO(nasr): check if there is more needed to do here
@@ -78,8 +78,8 @@ typedef struct
 
 typedef struct 
 {
-	char* total;
-	char* free;
+	char total[MAXC_CHAR];
+	char free[MAXC_CHAR];
 } Ram;
 
 typedef struct 
@@ -91,9 +91,10 @@ typedef struct
 typedef struct 
 { 
 
-	char *hostname;
-	char *os_version;
-	int uptime;
+	char hostname[MAXC_CHAR]; 
+	char os_version[MAXC_CHAR];
+	char uptime[MAXC_CHAR];
+	// TODO(nasr): handle the type later
 	uint16_t procs;
 
 } Device;
@@ -161,7 +162,7 @@ cpu_data(Cpu *cpu)
 			start++;
 
 		char *end = strchr(start, '\n');
-
+   
 		if (!end)
 			end = start + strlen(start);
 
@@ -208,6 +209,7 @@ memory_data(Ram *ram)
 	if (!file)
 	{
 		//TODO(nasr): write this to the created agent log system
+		fclose(file);
 		return;
 	}
 
@@ -223,12 +225,13 @@ memory_data(Ram *ram)
 		while (*start == ' ')
 			start++;
 
-		char *end = strchr(start, '\n');
+		char *end = strchr(start, 'k');
 
 		if (!end)
 			end = start + strlen(start);
 
 		size_t length = (size_t)(end - start);
+
 
 		if ((strncmp(buffer, total, sizeof(total) - 1)) == 0) 
 		{
@@ -236,11 +239,13 @@ memory_data(Ram *ram)
 			ram->total[length] = '\0';
 		}
 
-		if ((strncmp(buffer, total, sizeof(total) - 1)) == 0) 
+		if ((strncmp(buffer, free, sizeof(free) - 1)) == 0) 
 		{
-			memcpy(ram->total, start, length);
+			memcpy(ram->free, start, length);
 			ram->free[length] = '\0';
 		}
+
+
 	}
 	fclose(file);
 
@@ -261,55 +266,34 @@ disk_data(Disk *disk)
 }
 
 
-char *uptime(const char *path)
-{
-	FILE *file = fopen(path, "r");
-	if (!file)
-		return NULL;
-
-	char *buffer = (char*)malloc(MAXC_CHAR);
-	if (!buffer)
-		return NULL;
-
-
-	char *content = fgets(buffer, sizeof(*buffer), file);
-	if (!content)
-		return NULL;
-
-	fclose(file);
-	return content;
-
-}
-
-char* os_version(const char *path)
-{
-	FILE *file = fopen(path, "r");
-	if (!file)
-		return NULL;
-
-	char *buffer = (char*)malloc(MAXC_CHAR);
-
-	char *content = fgets(buffer, sizeof(*buffer), file);
-	if (!content)
-		return NULL;
-
-	fclose(file);
-	return content; 
-
-}
-
-
 void
 device_data(Device *device) 
 {
-	const char *uptime_path = "/proc/uptime";
-	const char *os_version_path = "/proc/os_version";
 
-	if (device->uptime == NULL)
-	{
-		device->uptime = uptime(uptime_path);
-		device->os_version = os_version(os_version_path);
-	}
+	const char *uptime_path = "/proc/uptime";
+	const char *os_version_path = "/proc/version";
+
+	FILE *uptime_file = fopen(uptime_path, "r");
+	if (!uptime_file)
+		return;
+
+	FILE *os_version_file = fopen(os_version_path, "r");
+	if (!os_version_file)
+		return;
+
+
+
+	char os_version_content[MAXC_CHAR]	= "";
+	char uptime_content[MAXC_CHAR]		= "";
+
+	fgets(os_version_content, MAXC_CHAR, os_version_file);
+	fgets(uptime_content,MAXC_CHAR, uptime_file); 
+
+	memcpy(device->uptime, uptime_content, sizeof(uptime_content));
+	memcpy(device->os_version, os_version_content ,sizeof(os_version_content));
+
+	fclose(uptime_file);
+	fclose(os_version_file);
 
 
 }
@@ -318,29 +302,46 @@ int
 main() 
 {
 	// Arena *arena; 
-	//
+
 	Cpu *cpu;
 	Ram *ram;
 	Device *device;
 	Disk *disk;
-	//
+
 	// ArenaPush(arena, sizeof(Cpu));
 	// ArenaPush(arena, sizeof(Ram));
 	// ArenaPush(arena, sizeof(Disk));
 	// ArenaPush(arena, sizeof(Device));
 	//
 	// ArenaAlloc();
-	//
-	// cpu_data(cpu);
-	// memory_data(ram);
-	// device_data(device);
-	//
-	// ArenaRelease(arena);
+
+	cpu = (Cpu*)malloc(sizeof(Cpu));
+	ram = (Ram*)malloc(sizeof(Ram));
+	device = (Device*)malloc(sizeof(Device));
 
 	cpu_data(cpu);
+	memory_data(ram);
+	device_data(device);
+
+	printf("================================================================");
+	printf("\nmodel: %s\n", cpu->model);
+	printf("\nvendor: %s\n", cpu->vendor);
+	printf("\nfrequency: %s\n", cpu->frequency);
+	printf("\ncores: %s\n", cpu->cores);
+
+	printf("================================================================");
+
+
+	printf("\ntotal: %s\n", ram->total);
+	printf("\nfree: %s\n", ram->free);
+
+	printf("================================================================\n");
+	
+	printf("os_version: %s\n", device->os_version);
+	printf("uptime: %s\n", device->uptime);
+	// ArenaRelease(arena);
 	return 0;
 }
-
 
 // TODO(nasr): find a way to use libvirt to create and start a virtual machine
 // TODO(nasr): find a way to pass parameters to libvirt
