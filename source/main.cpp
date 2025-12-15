@@ -1,54 +1,95 @@
 /*
  * Author: nasr
  * Year: 2025-2026
- *
- */
+ * */
 
-#include <cstdint>
-#include <cstdlib>
-#include <sys/sysinfo.h>
-#include <pthread.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <math.h>
+#include <stdint.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#define MAXC 1024
+// TODO(nasr): create and start virtual machines using KVM - QEMU - LIBVIRT
+// #include <libvirt/libvirt.h>
+
 #define MAXC_CHAR 256
-#define CONVERT_BYTES_TO_GIGABYTES 107374182   
-#define D 1073741824
 
-#define forever for(;;)
 
 typedef struct {
 
-	// TODO: create the arena struct
+	uint8_t *base; 
+	size_t idx;
+	size_t cap;
 
 } Arena;
 
-typedef struct {
+	Arena 
+*ArenaAlloc(void) 
+{
 
-	char* name;
-	char* frequency;
-	int temperature;
-	int threads;
+	return NULL;
+
+}
+
+	void
+*ArenaRelease(Arena *arena) 
+{
+
+	return NULL;
+
+}
+
+	Arena
+*ArenaPush(Arena *arena, size_t bytes)
+{
+
+	return NULL;
+}
+
+	void
+ArenaPop(Arena *arena)
+{
+
+}
+
+	uint64_t
+ArenaGetPos(Arena *arena)
+{
+
+	return 0;
+}
+
+	void
+ArenaClear(Arena *arena)
+{
+	// TODO(nasr): check if there is more needed to do here
+	free(arena);
+}
+
+typedef struct 
+{
+
+	char vendor[MAXC_CHAR]; 
+	char model[MAXC_CHAR]; 
+	char frequency[MAXC_CHAR]; 
+	char cores[MAXC_CHAR]; 
 
 } Cpu;
 
-typedef struct {
-	double total;
-	double available;
+typedef struct 
+{
+	char* total;
+	char* free;
 } Ram;
 
-typedef struct {
+typedef struct 
+{
 	long size;
 	char *name;
 } Disk;
 
-typedef struct { 
+typedef struct 
+{ 
 
 	char *hostname;
 	char *os_version;
@@ -58,160 +99,257 @@ typedef struct {
 } Device;
 
 
-Arena *ArenaAlloc(void);
-Arena *ArenaRelease(void);
+// math heper functions
+// @param takes a base and an exponent
+int
+pow(int base, int exp) 
+{
 
-template <typename T>
-Arena *ArenaPush(Arena *arena, T);
+	uint64_t result = 0;
+	for (int i = 0; i < exp; ++i) {
 
-template <typename T>
-Arena *ArenaPushZero(Arena *arena, T);
+		result *= base;
+	}
 
-template <typename T> 
-void ArenaPop(Arena *arena, T);
-uint64_t ArenaGetPos(Arena *arena); 
-
-void ArenaClear(Arena *arena);
-
-void cpu_data(Cpu *cpu);
-void memory_data(Ram *ram);
-void device_data(Device *device);
-
-int 
-main() {
-
-	// TODO: get disk information
-
-	Cpu		*cpu		= (Cpu*)malloc( sizeof(Cpu) );
-	Ram		*ram		= (Ram*)malloc(sizeof(Ram));
-	Device	*device		= (Device*)malloc(sizeof(Device));
-
-	// disk	= (Disk*)malloc(sizeof(Disk));
-
-	cpu_data(cpu);
-	memory_data(ram);
-	device_data(device);
-
-	printf("gathering system resources...");
-	printf("\ntemperature: %d\nfrequency: %s\nname: %s\nthreads: %d\n", cpu->temperature, cpu->frequency, cpu->name, cpu->threads);
-	printf("total: %f\navailable: %f\n", ram->total, ram->available);
-	printf("hostname:%s\nos version: %s\nuptime: %d\nprocs: %d\n", device->hostname, device->os_version, device->uptime, device->procs);
-
-	free(cpu);
-	free(ram);
-	// free(disk);
-	free(device);
+	return result;
 
 	return 0;
 }
 
+int
+pow(double base, double exp) 
+{
 
+	float result = 0;
 
+	for (int i = 0; i < exp; ++i) {
 
-
-void
-cpu_data(Cpu *cpu) {
-
-	cpu->name	= (char*)malloc(sizeof(char) * MAXC_CHAR);
-	char *buffer = (char*)malloc(sizeof(char) * MAXC_CHAR);
-
-	FILE *fp = fopen("/proc/cpuinfo", "r");
-	if (!fp) perror("can't open /proc/cpuinfo");
-
-	char line[MAXC_CHAR];
-	while (fgets(line, MAXC_CHAR, fp)) {
-		if (strncmp(line, "model name",  sizeof(cpu->name)) == 0) {
-			char *colon = strchr(line, ':');
-			if (colon) {
-					cpu->name[strcspn(cpu->name, "\n")] = 0;
-					snprintf(cpu->name, MAXC_CHAR, "%s", colon);
-			}
-
-			if (strstr(line, "cpu MHz") != NULL) {
-				colon = NULL;
-				colon = strchr(buffer, ':');
-				if (colon) {
-					snprintf(buffer, MAXC_CHAR, "%s", colon);
-					cpu->frequency = buffer;
-				}
-			}
-		}
+		result *= base;
 	}
 
-	fclose(fp);
-	fp = NULL;
-
-#define delay 1
-
-	fp = fopen("/sys/class/thermal/thermal_zone0/temp", "r");
-	if (!fp)
-		printf("error reading /proc/cpuinfo");
-
-	while (fgets(buffer, sizeof(buffer), fp)) {
-		int a = atoi(buffer);
-		a /= 1000;
-		cpu->temperature = a;
-		fflush(stdout);
-	}
-	fclose(fp);
+	return result;
 }
 
 
 void
-memory_data(Ram *ram) {
+cpu_data(Cpu *cpu) 
+{
+	char basic_cpu_info[]	= "/proc/cpuinfo";
 
-	struct sysinfo info;
+	char vendor_id[]		= { "vendor_id"};
+	char model[]			= { "model name"};
+	char frequency[]		= { "cpu MHz"};
+	char cores[]			= { "cpu cores"};
 
-	if (sysinfo(&info) != 0) {
-		perror("sysinfo");
+	FILE *file = fopen(basic_cpu_info, "r");
+	if (!file)
+	{
+		//TODO(nasr): write this to the created agent log system
 		return;
 	}
 
-	long total_ram = info.totalram * info.mem_unit; 
+	char buffer[MAXC_CHAR] = "";
+	while(fgets(buffer, sizeof(buffer), file) != NULL)
+	{
+		char *colon = strchr(buffer, ':');
+		if (!colon)
+			continue; 
 
-	if (sysinfo(&info) != 0) {
-		perror("sysinfo");
+		char *start = colon + 1;
+		 
+		while (*start == ' ')
+			start++;
+
+		char *end = strchr(start, '\n');
+
+		if (!end)
+			end = start + strlen(start);
+
+		size_t length = (size_t)(end - start);
+
+		if ((strncmp(buffer, vendor_id, sizeof(vendor_id) - 1)) == 0) 
+		{
+			memcpy(cpu->vendor, start, length);
+			cpu->vendor[length] = '\0';
+		}
+
+		if ((strncmp(buffer, model, sizeof(model) - 1)) == 0) 
+		{
+			memcpy(cpu->model, start, length);
+			cpu->model[length] = '\0';
+		}
+
+		if ((strncmp(buffer, frequency , sizeof(frequency) - 1)) == 0) 
+		{
+			memcpy(cpu->frequency, start, length);
+			cpu->frequency[length] = '\0';
+		}
+
+		if ((strncmp(buffer, cores, sizeof(cores) - 1)) == 0) 
+		{
+			memcpy(cpu->cores, start, length);
+			cpu->cores[length] = '\0';
+		}
 	}
 
-	long free_ram = info.freeram * info.mem_unit;
+	fclose(file);
+}
 
-	ram->available	= free_ram / pow(10, 8);
-	ram->total		= total_ram /  pow(10, 8);
+void
+memory_data(Ram *ram) 
+{
+
+	char mem_info[]	= "/proc/meminfo";
+
+	char total[]		= { "MemTotal"};
+	char free[]			= { "MemFree"};
+
+	FILE *file = fopen(mem_info, "r");
+	if (!file)
+	{
+		//TODO(nasr): write this to the created agent log system
+		return;
+	}
+
+	char buffer[MAXC_CHAR] = "";
+	while(fgets(buffer, sizeof(buffer), file) != NULL)
+	{
+		char *colon = strchr(buffer, ':');
+		if (!colon)
+			continue; 
+
+		char *start = colon + 1;
+		 
+		while (*start == ' ')
+			start++;
+
+		char *end = strchr(start, '\n');
+
+		if (!end)
+			end = start + strlen(start);
+
+		size_t length = (size_t)(end - start);
+
+		if ((strncmp(buffer, total, sizeof(total) - 1)) == 0) 
+		{
+			memcpy(ram->total, start, length);
+			ram->total[length] = '\0';
+		}
+
+		if ((strncmp(buffer, total, sizeof(total) - 1)) == 0) 
+		{
+			memcpy(ram->total, start, length);
+			ram->free[length] = '\0';
+		}
+	}
+	fclose(file);
 
 }
 
 void
 disk_data(Disk *disk) 
 {
+	char disk_info[]	= "/proc/diskstats";
+	FILE *file = fopen(disk_info, "r");
+	if (!file)
+	{
+		fclose(file);
+		return;
+	}
 
-	// TODO: return disk data
+	fclose(file);
+}
+
+
+char *uptime(const char *path)
+{
+	FILE *file = fopen(path, "r");
+	if (!file)
+		return NULL;
+
+	char *buffer = (char*)malloc(MAXC_CHAR);
+	if (!buffer)
+		return NULL;
+
+
+	char *content = fgets(buffer, sizeof(*buffer), file);
+	if (!content)
+		return NULL;
+
+	fclose(file);
+	return content;
+
+}
+
+char* os_version(const char *path)
+{
+	FILE *file = fopen(path, "r");
+	if (!file)
+		return NULL;
+
+	char *buffer = (char*)malloc(MAXC_CHAR);
+
+	char *content = fgets(buffer, sizeof(*buffer), file);
+	if (!content)
+		return NULL;
+
+	fclose(file);
+	return content; 
 
 }
 
 
 void
-device_data(Device *device) {
-	struct sysinfo info;
-	if (sysinfo(&info) == -1)
-		perror("sysinfo");
+device_data(Device *device) 
+{
+	const char *uptime_path = "/proc/uptime";
+	const char *os_version_path = "/proc/os_version";
 
-	device->uptime = info.uptime;
-	device->procs = info.procs;	
+	if (device->uptime == NULL)
+	{
+		device->uptime = uptime(uptime_path);
+		device->os_version = os_version(os_version_path);
+	}
 
-	FILE *fp = fopen("/etc/hostname", "r");
-	char* buffer = (char*)malloc(sizeof(char) * MAXC_CHAR);
 
-	device->hostname = fgets(buffer, MAXC_CHAR, fp);
+}
 
-	fclose(fp);
+int 
+main() 
+{
+	// Arena *arena; 
+	//
+	Cpu *cpu;
+	Ram *ram;
+	Device *device;
+	Disk *disk;
+	//
+	// ArenaPush(arena, sizeof(Cpu));
+	// ArenaPush(arena, sizeof(Ram));
+	// ArenaPush(arena, sizeof(Disk));
+	// ArenaPush(arena, sizeof(Device));
+	//
+	// ArenaAlloc();
+	//
+	// cpu_data(cpu);
+	// memory_data(ram);
+	// device_data(device);
+	//
+	// ArenaRelease(arena);
 
-	free(buffer);
-		
-	fp = fopen("/etc/os-release", "r");
-	void *err = realloc(buffer,  MAXC_CHAR);
+	cpu_data(cpu);
+	return 0;
+}
 
-	device->os_version = fgets(buffer, MAXC_CHAR, fp);
 
-	free(fp);
+// TODO(nasr): find a way to use libvirt to create and start a virtual machine
+// TODO(nasr): find a way to pass parameters to libvirt
+
+void
+create_vm()
+{
+
+	// TODO(nasr): create and start virtual machines using libirt
+
 }
 
