@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 // TODO(nasr): create and start virtual machines using KVM - QEMU - LIBVIRT
 // #include <libvirt/libvirt.h>
@@ -298,10 +300,40 @@ device_data(Device *device)
 
 }
 
+// TODO(nasr): finish this
+void
+get_processes()
+{
+	const char *path = "/proc";
+	struct dirent *entry;
+
+	DIR *dP = opendir(path);
+
+	char **pid_list = (char**)malloc(sizeof(char*) * 256);
+
+	if (!dP) return perror("failed to open /proc folder");
+
+	while ((entry = readdir(dP)) != NULL)
+	{
+		if (atoi(entry->d_name) != 0)
+		{
+			printf("%s\n", entry->d_name);
+			memcpy(pid_list, entry->d_name, entry->d_reclen);
+			++(*pid_list);
+		};
+	}
+
+	
+	return ;
+}
+
 int 
 main() 
 {
 	// Arena *arena; 
+	//
+	get_processes();
+
 
 	Cpu *cpu;
 	Ram *ram;
