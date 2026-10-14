@@ -1,3 +1,3 @@
-# Resources gathering tool
+# Resource gathering tool
 
-Tool for gathering system resources on linux 
+A tool for gathering system resources on Linux.
